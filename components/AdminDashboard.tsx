@@ -148,7 +148,7 @@ interface Props {
   onToggleDarkMode?: (v: boolean) => void;
 }
 
-export const AdminDashboard: React.FC<Props> = ({ onNavigate, settings, onUpdateSettings, onImpersonate, logActivity, isDarkMode, onToggleDarkMode }) => {
+const AdminDashboardUI: React.FC<Props> = ({ onNavigate, settings, onUpdateSettings, onImpersonate, logActivity, isDarkMode, onToggleDarkMode }) => {
   // --- GLOBAL STATE ---
   const [activeTab, setActiveTab] = useState<AdminTab>('DASHBOARD');
   const [storageInfo, setStorageInfo] = React.useState<{used: string, quota: string, percent: number} | null>(null);
@@ -237,10 +237,11 @@ export const AdminDashboard: React.FC<Props> = ({ onNavigate, settings, onUpdate
             Logout
           </button>
         </div>
-      </div>
+          </div>
   );
 };
 
+// यह असली AdminDashboard है जिसे ऐप इस्तेमाल करेगा
 export const AdminDashboard: React.FC<Props> = (props) => {
   return <AdminDashboardInner {...props} />;
 };
@@ -259,11 +260,14 @@ const AdminDashboardInner: React.FC<Props> = ({ onNavigate, settings, onUpdateSe
   const [pilotSubject, setPilotSubject] = useState<Subject | null>(null);
 
   // CURRENT USER CONTEXT (From Props or LocalStorage if missing)
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   useEffect(() => {
-      const stored = localStorage.getItem('nst_current_user');
-      if (stored) setCurrentUser(JSON.parse(stored));
-  }, []);
+  const initializeUser = async () => {
+    // storage अब IndexedDB (localforage) से डेटा लाएगा
+    const stored = await storage.getItem('nst_current_user');
+    if (stored) setCurrentUser(JSON.parse(stored as string));
+  };
+  initializeUser();
+}, []);
 
   // --- PERMISSION HELPER ---
   const hasPermission = (perm: string) => {
